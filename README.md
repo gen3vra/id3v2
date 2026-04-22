@@ -1,6 +1,6 @@
-# id3v2
+# UTF16 Patched id3v2
 
-Implementation of ID3 v2.3 and v2.4 in native Go.
+With actual UTF-16 support
 
 ## Installation
 

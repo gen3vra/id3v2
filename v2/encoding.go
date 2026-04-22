@@ -136,10 +136,9 @@ func encodeWriteText(bw *bufWriter, src string, to Encoding) error {
 
 	bw.WriteString(encoded)
 
-	if to.Equals(EncodingUTF16) && !bytes.HasSuffix([]byte(encoded), []byte{0}) {
-		bw.WriteByte(0)
-	}
-
+	// For UTF-16 we must not append a single 0 byte here. The frame writers
+	// add proper termination bytes; adding a single 0 could produce an odd
+	// number of bytes for UTF-16 payloads and break downstream parsers.
 	return nil
 }
 
@@ -148,10 +147,12 @@ func resolveXEncoding(src []byte, encoding Encoding) encoding.Encoding {
 	case 0:
 		return xencodingISO
 	case 1:
+		// If source bytes start with the little-endian BOM, choose LE.
+		// Otherwise default to little-endian BOM for consistency with `bom`.
 		if len(src) > 2 && bytes.Equal(src[:2], bom) {
 			return xencodingUTF16LEBOM
 		}
-		return xencodingUTF16BEBOM
+		return xencodingUTF16LEBOM
 	case 2:
 		return xencodingUTF16BE
 	}
